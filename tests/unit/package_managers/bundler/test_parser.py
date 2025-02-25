@@ -8,7 +8,6 @@ from unittest import mock
 
 import pydantic
 import pytest
-from git.repo import Repo
 
 from cachi2.core.errors import PackageManagerError, PackageRejected, UnexpectedFormat
 from cachi2.core.package_managers.bundler.parser import (
@@ -22,6 +21,7 @@ from cachi2.core.package_managers.bundler.parser import (
     parse_lockfile,
 )
 from cachi2.core.rooted_path import RootedPath
+from cachi2.core.scm import Repo
 from tests.common_utils import GIT_REF
 
 RegexpStr = str  # a string representing a regular expression.

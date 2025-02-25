@@ -2,7 +2,6 @@ from textwrap import dedent
 from unittest import mock
 
 import pytest
-from git.repo import Repo
 
 from cachi2.core.errors import PackageRejected
 from cachi2.core.package_managers.bundler.main import (
@@ -17,6 +16,7 @@ from cachi2.core.package_managers.bundler.parser import (
     PathDependency,
 )
 from cachi2.core.rooted_path import RootedPath
+from cachi2.core.scm import Repo
 from tests.common_utils import GIT_REF
 
 

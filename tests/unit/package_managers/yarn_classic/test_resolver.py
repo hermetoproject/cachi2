@@ -5,7 +5,6 @@ import tarfile
 from unittest import mock
 from urllib.parse import quote
 
-import git
 import pytest
 from pyarn.lockfile import Package as PYarnPackage
 
@@ -33,7 +32,7 @@ from cachi2.core.package_managers.yarn_classic.resolver import (
 )
 from cachi2.core.package_managers.yarn_classic.workspaces import Workspace
 from cachi2.core.rooted_path import PathOutsideRoot, RootedPath
-from cachi2.core.scm import get_repo_id
+from cachi2.core.scm import Repo, get_repo_id
 
 VALID_GIT_URLS = [
     "git://git.host.com/some/path",
@@ -370,7 +369,7 @@ def test_get_workspace_packages(rooted_tmp_path: RootedPath) -> None:
 
 
 def test_package_purl(rooted_tmp_path_repo: RootedPath) -> None:
-    repo = git.Repo(rooted_tmp_path_repo)
+    repo = Repo(rooted_tmp_path_repo)
     repo.create_remote("origin", "https://github.com/org/repo.git")
 
     example_repo_id = get_repo_id(repo)
