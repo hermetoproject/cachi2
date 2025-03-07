@@ -127,6 +127,12 @@ document has been completed, then it's essentially just a matter of cachi2 inter
 ``yarn install --mode=skip-build`` to fetch all dependencies (including transitive dependencies).
 
 ### Known pitfalls
+
+If your sources were not fetched from a remote git repo, Cachi2 will get confused about the name of 
+the main package, throwing an error: ``InvalidGitRepositoryError for file: URL``. As workaround, run 
+``git init; git remote add origin orgin https://github.com/somewhere/out-there/`` so that ``git remote show origin`` will return a value
+when Cachi2 is defining the name of the main package.
+
 If your repository isn't in a pristine state (i.e. you tried to run ``yarn install`` previously on
 your own without Cachi2) what may happen is that Cachi2 will assume the repository makes use of
 [Zero-Installs](#dealing-with-yarn-zero-installs). The workaround here is simple, just run ``yarn
