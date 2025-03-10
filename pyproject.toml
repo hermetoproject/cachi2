@@ -48,6 +48,7 @@ dev = [
   "nox",
   "typing-extensions",
 ]
+docs = ["mkdocs", "mkdocs-material"]
 test = [
   "jsonschema",
   "pytest",

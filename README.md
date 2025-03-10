@@ -2,6 +2,7 @@
 
 [![coverage][cachi2-coverage-badge]][cachi2-coverage-status]
 [![container][cachi2-container-badge]][cachi2-container-status]
+[![website][cachi2-website-badge]][cachi2-website-status]
 
 Cachi2 is a CLI tool that pre-fetches your project's dependencies to aid in making your build process
 [hermetic](https://slsa.dev/spec/v0.1/requirements#hermetic).
@@ -264,6 +265,9 @@ Cachi2 was derived (but is not a direct fork) from [Cachito](https://github.com/
 
 [cachi2-container-badge]: https://img.shields.io/badge/container-latest-blue
 [cachi2-container-status]: https://quay.io/repository/konflux-ci/cachi2/tag/latest
+
+[cachi2-website-badge]: https://img.shields.io/readthedocs/cachi2
+[cachi2-website-status]: https://cachi2.readthedocs.io
 
 [sdist-spec]: https://packaging.python.org/en/latest/specifications/source-distribution-format/
 [wheel-spec]: https://packaging.python.org/en/latest/specifications/binary-distribution-format/

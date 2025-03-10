@@ -1,0 +1,13 @@
+version: 2
+
+build:
+  os: "ubuntu-lts-latest"
+  tools:
+    python: "3.9"
+
+python:
+  install:
+    - requirements: requirements-extras.txt
+
+mkdocs:
+  configuration: mkdocs.yml
