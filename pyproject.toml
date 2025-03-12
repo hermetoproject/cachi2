@@ -58,10 +58,10 @@ test = [
   "pyyaml",
 ]
 [project.scripts]
-cachi2 = "cachi2.interface.cli:app"
+cachi2 = "hermeto.interface.cli:app"
 
 [tool.setuptools]
-packages = ["cachi2"]
+packages = ["hermeto"]
 
 [tool.setuptools_scm]
 fallback_version = "0.0.0+dev.fallback"
