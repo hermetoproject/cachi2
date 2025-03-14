@@ -44,6 +44,7 @@ dev = [
   "flake8-docstrings",
   "flake8-pyproject",
   "isort[colors]",
+  "mkdocs-material",
   "mypy",
   "nox",
   "typing-extensions",

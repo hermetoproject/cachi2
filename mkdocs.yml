@@ -1,0 +1,84 @@
+# Project information
+site_name: Cachi2
+repo_name: hermetoproject/cachi2
+repo_url: https://github.com/hermetoproject/cachi2
+edit_uri: edit/main/docs
+
+# Feedback gathering
+# https://squidfunk.github.io/mkdocs-material/setup/setting-up-site-analytics
+extra:
+  analytics:
+    # TODO
+    provider: google
+    property: G-XXXXXXXXXX
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback!
+
+# Theme configuration
+theme:
+  name: material
+  locale: en
+  favicon: img/lock-black.svg
+  logo: img/lock-white.svg
+  palette:
+    - scheme: default
+      primary: green
+      accent: green
+      toggle:
+        icon: material/brightness-5
+        name: Switch to dark mode
+    - scheme: slate
+      primary: green
+      accent: green
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+    - content.tooltips
+
+# Navigation bar
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Package managers:
+      - bundler: bundler.md
+      - cargo: cargo.md
+      - generic: generic.md
+      - gomod: gomod.md
+      - npm: npm.md
+      - pip: pip.md
+      - yarn classic: yarn_classic.md
+      - yarn berry: yarn.md
+
+# Markdown extensions
+markdown_extensions:
+  - toc:
+      permalink: true
+
+# Markdown validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+# Irrelevant files
+exclude_docs: |
+  dependency_confusion.md
+  adr/
+  design/
