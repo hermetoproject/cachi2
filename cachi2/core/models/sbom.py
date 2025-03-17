@@ -14,7 +14,7 @@ import pydantic
 from packageurl import PackageURL
 from typing_extensions import Self
 
-from cachi2.core.models.property_semantics import Property, PropertySet
+from cachi2.core.models.property_semantics import Property, PropertyEnum, PropertySet
 from cachi2.core.models.validators import unique_sorted
 from cachi2.core.utils import first_for
 
