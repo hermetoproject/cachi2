@@ -37,28 +37,27 @@ def top_level_test_dir() -> Path:
     """Path to the top-level tests directory inside our repository.
 
     This is useful in tests which have to reference particular test data directories, e.g. the
-    simple PyPI server which may contain other data that have to be mount to either the cachi2
+    simple PyPI server which may contain other data that have to be mount to either the hermeto
     image during a test execution or to some other service container we may need for testing.
     """
     return Path(__file__).parents[1]
 
 
 @pytest.fixture(scope="session")
-def cachi2_image() -> utils.Cachi2Image:
-    cachi2_image_ref = os.environ.get("CACHI2_IMAGE")
-    if not cachi2_image_ref:
-        cachi2_image_ref = "localhost/cachi2:latest"
+def hermeto_image() -> utils.HermetoImage:
+    if not (image_ref := os.environ.get("HERMETO_IMAGE")):
+        image_ref = "localhost/cachi2:latest"
         log.info("Building local cachi2:latest image")
-        # <arbitrary_path>/cachi2/tests/integration/conftest.py
+        # <arbitrary_path>/hermeto/tests/integration/conftest.py
         #                   [2] <- [1]  <-  [0]  <- parents
-        cachi2_repo_root = Path(__file__).parents[2]
-        utils.build_image(cachi2_repo_root, tag=cachi2_image_ref)
+        repo_root = Path(__file__).parents[2]
+        utils.build_image(repo_root, tag=image_ref)
 
-    cachi2 = utils.Cachi2Image(cachi2_image_ref)
-    if not cachi2_image_ref.startswith("localhost/"):
-        cachi2.pull_image()
+    hermeto = utils.HermetoImage(image_ref)
+    if not image_ref.startswith("localhost/"):
+        hermeto.pull_image()
 
-    return cachi2
+    return hermeto
 
 
 # autouse=True: It's nicer to see the pypiserver setup logs at the beginning of the test suite.
@@ -69,7 +68,7 @@ def local_pypiserver() -> Iterator[None]:
     if (
         os.getenv("CI")
         and os.getenv("GITHUB_ACTIONS")
-        or os.getenv("CACHI2_TEST_LOCAL_PYPISERVER") != "true"
+        or os.getenv("HERMETO_TEST_LOCAL_PYPISERVER") != "true"
     ):
         yield
         return
@@ -121,7 +120,7 @@ def local_dnfserver(top_level_test_dir: Path) -> Iterator[None]:
     if (
         os.getenv("CI")
         and os.getenv("GITHUB_ACTIONS")
-        or os.getenv("CACHI2_TEST_LOCAL_DNF_SERVER") != "true"
+        or os.getenv("HERMETO_TEST_LOCAL_DNF_SERVER") != "true"
     ):
         yield
         return

@@ -1,7 +1,8 @@
 import pytest
 
-from cachi2.core.models.property_semantics import PropertySet
-from cachi2.core.models.sbom import Component, Property, merge_component_properties
+from hermeto import APP_NAME
+from hermeto.core.models.property_semantics import Property, PropertyEnum, PropertySet
+from hermeto.core.models.sbom import Component, merge_component_properties
 
 
 @pytest.mark.parametrize(
@@ -16,8 +17,8 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
-                        Property(name="cdx:npm:package:bundled", value="true"),
-                        Property(name="cachi2:found_by", value="cachi2"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_BUNDLED, value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
                     ],
                 ),
                 Component(
@@ -25,8 +26,8 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="2.0.0",
                     purl="pkg:npm/bar@2.0.0",
                     properties=[
-                        Property(name="cdx:npm:package:development", value="true"),
-                        Property(name="cachi2:found_by", value="cachi2"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
                     ],
                 ),
             ],
@@ -36,8 +37,8 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="2.0.0",
                     purl="pkg:npm/bar@2.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cdx:npm:package:development", value="true"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
                     ],
                 ),
                 Component(
@@ -45,8 +46,8 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cdx:npm:package:bundled", value="true"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_BUNDLED, value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
                     ],
                 ),
             ],
@@ -60,10 +61,12 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cachi2:missing_hash:in_file", value="package-lock.json"),
-                        Property(name="cdx:npm:package:bundled", value="true"),
-                        Property(name="cdx:npm:package:development", value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                        Property(
+                            name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="package-lock.json"
+                        ),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_BUNDLED, value="true"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
                     ],
                 ),
                 Component(
@@ -71,10 +74,10 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cachi2:missing_hash:in_file", value="yarn.lock"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                        Property(name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="yarn.lock"),
                         # not bundled -> the merged result is not bundled
-                        Property(name="cdx:npm:package:development", value="true"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
                     ],
                 ),
                 Component(
@@ -82,10 +85,12 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cachi2:missing_hash:in_file", value="x/package-lock.json"),
-                        Property(name="cdx:npm:package:bundled", value="true"),
-                        Property(name="cdx:npm:package:development", value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                        Property(
+                            name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="x/package-lock.json"
+                        ),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_BUNDLED, value="true"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
                     ],
                 ),
             ],
@@ -95,11 +100,15 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cachi2:missing_hash:in_file", value="package-lock.json"),
-                        Property(name="cachi2:missing_hash:in_file", value="x/package-lock.json"),
-                        Property(name="cachi2:missing_hash:in_file", value="yarn.lock"),
-                        Property(name="cdx:npm:package:development", value="true"),
+                        Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                        Property(
+                            name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="package-lock.json"
+                        ),
+                        Property(
+                            name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="x/package-lock.json"
+                        ),
+                        Property(name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="yarn.lock"),
                     ],
                 ),
             ],
@@ -114,7 +123,7 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:pip/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
                     ],
                 ),
                 # wheel
@@ -123,8 +132,8 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:pip/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cachi2:pip:package:binary", value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                        Property(name=PropertyEnum.PROP_PIP_PACKAGE_BINARY, value="true"),
                     ],
                 ),
             ],
@@ -134,8 +143,8 @@ from cachi2.core.models.sbom import Component, Property, merge_component_propert
                     version="1.0.0",
                     purl="pkg:pip/foo@1.0.0",
                     properties=[
-                        Property(name="cachi2:found_by", value="cachi2"),
-                        Property(name="cachi2:pip:package:binary", value="true"),
+                        Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                        Property(name=PropertyEnum.PROP_PIP_PACKAGE_BINARY, value="true"),
                     ],
                 )
             ],
@@ -155,38 +164,38 @@ class TestPropertySet:
         [
             ([], PropertySet()),
             (
-                [Property(name="cachi2:found_by", value="cachi2")],
-                PropertySet(found_by="cachi2"),
+                [Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}")],
+                PropertySet(found_by=f"{APP_NAME}"),
             ),
             (
                 [
-                    Property(name="cachi2:missing_hash:in_file", value="go.sum"),
-                    Property(name="cachi2:missing_hash:in_file", value="foo/go.sum"),
+                    Property(name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="go.sum"),
+                    Property(name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="foo/go.sum"),
                 ],
                 PropertySet(missing_hash_in_file=frozenset(["go.sum", "foo/go.sum"])),
             ),
             (
-                [Property(name="cdx:npm:package:bundled", value="true")],
+                [Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_BUNDLED, value="true")],
                 PropertySet(npm_bundled=True),
             ),
             (
-                [Property(name="cdx:npm:package:development", value="true")],
+                [Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true")],
                 PropertySet(npm_development=True),
             ),
             (
-                [Property(name="cachi2:pip:package:binary", value="true")],
+                [Property(name=PropertyEnum.PROP_PIP_PACKAGE_BINARY, value="true")],
                 PropertySet(pip_package_binary=True),
             ),
             (
                 [
-                    Property(name="cachi2:found_by", value="cachi2"),
-                    Property(name="cachi2:missing_hash:in_file", value="go.sum"),
-                    Property(name="cachi2:missing_hash:in_file", value="foo/go.sum"),
-                    Property(name="cdx:npm:package:bundled", value="true"),
-                    Property(name="cdx:npm:package:development", value="true"),
+                    Property(name=PropertyEnum.PROP_FOUND_BY, value=f"{APP_NAME}"),
+                    Property(name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="go.sum"),
+                    Property(name=PropertyEnum.PROP_MISSING_HASH_IN_FILE, value="foo/go.sum"),
+                    Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_BUNDLED, value="true"),
+                    Property(name=PropertyEnum.PROP_CDX_NPM_PACKAGE_DEVELOPMENT, value="true"),
                 ],
                 PropertySet(
-                    found_by="cachi2",
+                    found_by=f"{APP_NAME}",
                     missing_hash_in_file=frozenset(["go.sum", "foo/go.sum"]),
                     npm_bundled=True,
                     npm_development=True,
@@ -209,14 +218,14 @@ class TestPropertySet:
                 PropertySet(),
             ),
             (
-                PropertySet(found_by="cachi2"),
+                PropertySet(found_by=f"{APP_NAME}"),
                 PropertySet(found_by="impostor"),
-                PropertySet(found_by="cachi2"),
+                PropertySet(found_by=f"{APP_NAME}"),
             ),
             (
                 PropertySet(found_by=None),
-                PropertySet(found_by="cachi2"),
-                PropertySet(found_by="cachi2"),
+                PropertySet(found_by=f"{APP_NAME}"),
+                PropertySet(found_by=f"{APP_NAME}"),
             ),
             (
                 PropertySet(missing_hash_in_file=frozenset(["go.sum"])),

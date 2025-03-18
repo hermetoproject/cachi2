@@ -14,17 +14,18 @@ import pytest
 import typer.testing
 import yaml
 
-import cachi2.core.config as config_file
-from cachi2.core.models.input import Request
-from cachi2.core.models.output import (
+import hermeto.core.config as config_file
+from hermeto import APP_NAME
+from hermeto.core.models.input import Request
+from hermeto.core.models.output import (
     BuildConfig,
     Component,
     EnvironmentVariable,
     RequestOutput,
     Sbom,
 )
-from cachi2.core.models.sbom import SPDXSbom
-from cachi2.interface.cli import DEFAULT_OUTPUT, DEFAULT_SOURCE, app
+from hermeto.core.models.sbom import SPDXSbom
+from hermeto.interface.cli import DEFAULT_OUTPUT, DEFAULT_SOURCE, app
 
 runner = typer.testing.CliRunner()
 
@@ -49,7 +50,7 @@ def mock_fetch_deps(
 ) -> Iterator[mock.MagicMock]:
     output = output or RequestOutput.empty()
 
-    with mock.patch("cachi2.interface.cli.resolve_packages") as mock_resolve_packages:
+    with mock.patch("hermeto.interface.cli.resolve_packages") as mock_resolve_packages:
         mock_resolve_packages.return_value = output
         yield mock_resolve_packages
 
@@ -84,10 +85,10 @@ def assert_pattern_in_output(pattern: Union[str, re.Pattern], output: str) -> No
 
 class TestTopLevelOpts:
     def test_version_option(self) -> None:
-        expect_version = importlib.metadata.version("cachi2")
+        expect_version = importlib.metadata.version(f"{APP_NAME}")
         result = invoke_expecting_sucess(app, ["--version"])
         lines = result.output.splitlines()
-        assert lines[0] == f"cachi2 {expect_version}"
+        assert lines[0] == f"{APP_NAME} {expect_version}"
         assert lines[1].startswith("Supported package managers: bundler")
 
     @pytest.mark.parametrize(
@@ -135,7 +136,7 @@ class TestTopLevelOpts:
 
             return output
 
-        with mock.patch("cachi2.interface.cli.resolve_packages") as mock_resolve_packages:
+        with mock.patch("hermeto.interface.cli.resolve_packages") as mock_resolve_packages:
             mock_resolve_packages.side_effect = side_effect
             invoke_expecting_sucess(app, args)
 
@@ -198,7 +199,7 @@ class TestTopLevelOpts:
         with mock_fetch_deps():
             invoke_expecting_sucess(app, args)
 
-        loglevel = logging.getLogger("cachi2").getEffectiveLevel()
+        loglevel = logging.getLogger(f"{APP_NAME}").getEffectiveLevel()
         loglevel_name = logging.getLevelName(loglevel)
         assert loglevel_name == expected_level
 
@@ -638,7 +639,7 @@ class TestFetchDeps:
             ),
         ],
     )
-    @mock.patch("cachi2.core.models.sbom.spdx_now", return_value=SPDX_EPOCH_STRFTIME)
+    @mock.patch("hermeto.core.models.sbom.spdx_now", return_value=SPDX_EPOCH_STRFTIME)
     def test_write_json_output_spdx(
         self,
         mock_spdx_now: str,
@@ -710,10 +711,10 @@ class TestGenerateEnv:
         [
             ([], env_file_as_json, None),
             (["--format=env"], env_file_as_env, None),
-            (["--output=cachi2-env.json"], env_file_as_json, "cachi2-env.json"),
-            (["--output=cachi2.env"], env_file_as_env, "cachi2.env"),
-            (["--output=cachi2-env.sh"], env_file_as_env, "cachi2-env.sh"),
-            (["--format=json", "--output=cachi2.env"], env_file_as_json, "cachi2.env"),
+            ([f"--output={APP_NAME}-env.json"], env_file_as_json, f"{APP_NAME}-env.json"),
+            ([f"--output={APP_NAME}.env"], env_file_as_env, f"{APP_NAME}.env"),
+            ([f"--output={APP_NAME}-env.sh"], env_file_as_env, f"{APP_NAME}-env.sh"),
+            (["--format=json", f"--output={APP_NAME}.env"], env_file_as_json, f"{APP_NAME}.env"),
         ],
     )
     def test_generate_env(
@@ -812,7 +813,7 @@ class TestInjectFiles:
         tmp_cwd.joinpath(".build-config.json").write_text(build_config.model_dump_json())
         return tmp_cwd
 
-    @pytest.mark.parametrize("for_output_dir", [None, "/cachi2/output"])
+    @pytest.mark.parametrize("for_output_dir", [None, "/hermeto/output"])
     def test_inject_files(
         self,
         for_output_dir: Optional[str],
@@ -848,8 +849,8 @@ class TestMergeSboms:
     #
     # Feature: user-input errors are handled gracefully.
     #     Scenario outine: a user tries to merge SBOMs, but does not provide correct SBOM files.
-    #     # A user can merge SBOMs with "cachi2 merge-sboms" subcommand.
-    #         When a user invokes "cachi2 merge-sboms" with "incorrect_arguments"
+    #     # A user can merge SBOMs with "hermeto merge-sboms" subcommand.
+    #         When a user invokes "hermeto merge-sboms" with "incorrect_arguments"
     #         Then a user sees "error_pattern" in cacho2 response
     #     Examples:
     #             | incorrect_arguments         | error_message             |
@@ -857,20 +858,20 @@ class TestMergeSboms:
     #             | single file                 | Need at least two         |
     #             | same file multiple times    | Need at least two         |
     #             | not a JSON among some JSONS | does not look like        |
-    #             | unsupported SBOM format     | a valid Cachi2 SBOM       |
+    #             | unsupported SBOM format     | a valid Hermeto SBOM       |
     #
     # Feature: user can merge SBOMS with a CLI command.
     #     Scenario outline: a user can merge several SBOMs.
-    #         When a user invokes "cachi2 merge-sboms" with "some_sbom_filenames"
-    #         Then cachi2 exits with return code of success.
+    #         When a user invokes "hermeto merge-sboms" with "some_sbom_filenames"
+    #         Then hermeto exits with return code of success.
     #     Examples:
     #             | some_sbom_filenames         |
     #             | two valid file names        |
     #             | three valid file names      |
     #
     #     Scenario outline: a user can merge several SBOMs and save results to a file.
-    #         When a user invokes "cachi2 merge-sboms -o tempfile" with "some_sbom_filenames".
-    #         Then cachi2 exits with return code of success.
+    #         When a user invokes "hermeto merge-sboms -o tempfile" with "some_sbom_filenames".
+    #         Then hermeto exits with return code of success.
     #          And tempfile contains merge result.
     #     Examples:
     #             | some_sbom_filenames         |
@@ -880,11 +881,11 @@ class TestMergeSboms:
         "sbom_files_to_merge, pattern",
         [
             ([], "Missing argument"),
-            (["./tests/unit/data/sboms/cachi2.bom.json"], "Need at least two"),
+            (["./tests/unit/data/sboms/hermeto.bom.json"], "Need at least two"),
             (
                 [
-                    "./tests/unit/data/sboms/cachi2.bom.json",
-                    "./tests/unit/data/sboms/cachi2.bom.json",
+                    "./tests/unit/data/sboms/hermeto.bom.json",
+                    "./tests/unit/data/sboms/hermeto.bom.json",
                 ],
                 "Need at least two",
             ),
@@ -901,7 +902,7 @@ class TestMergeSboms:
     @pytest.mark.parametrize(
         "sbom_files_to_merge, pattern",
         [
-            (["./tests/unit/data/sboms/cachi2.bom.json", "./README.md"], "does not look like"),
+            (["./tests/unit/data/sboms/hermeto.bom.json", "./README.md"], "does not look like"),
         ],
     )
     def test_a_user_sees_error_when_they_provide_a_non_json_file_for_a_merge(
@@ -917,14 +918,14 @@ class TestMergeSboms:
         [
             (
                 [
-                    "./tests/unit/data/sboms/cachi2.bom.json",
+                    "./tests/unit/data/sboms/hermeto.bom.json",
                     "./tests/unit/data/sboms/syft.bom.json",
                 ],
-                "a valid Cachi2 SBOM",
+                f"a valid {APP_NAME} SBOM",
             ),
         ],
     )
-    def test_a_user_sees_error_when_they_provide_a_non_cachi2_sbom_for_a_merge(
+    def test_a_user_sees_error_when_they_provide_a_non_hermeto_sbom_for_a_merge(
         self,
         sbom_files_to_merge: list[str],
         pattern: str,
@@ -936,17 +937,17 @@ class TestMergeSboms:
         "sbom_files_to_merge",
         [
             [
-                "./tests/unit/data/sboms/cachi2.bom.json",
+                "./tests/unit/data/sboms/hermeto.bom.json",
                 "./tests/unit/data/sboms/cachito_gomod.bom.json",
             ],
             [
-                "./tests/unit/data/sboms/cachi2.bom.json",
+                "./tests/unit/data/sboms/hermeto.bom.json",
                 "./tests/unit/data/sboms/cachito_gomod.bom.json",
                 "./tests/unit/data/sboms/cachito_gomod_nodeps.bom.json",
             ],
         ],
     )
-    def test_a_user_can_successfully_merge_several_cachi2_sboms(
+    def test_a_user_can_successfully_merge_several_hermeto_sboms(
         self,
         sbom_files_to_merge: list[str],
     ) -> None:
@@ -958,14 +959,14 @@ class TestMergeSboms:
         [
             pytest.param(
                 [
-                    "./tests/unit/data/sboms/cachi2.bom.json",
+                    "./tests/unit/data/sboms/hermeto.bom.json",
                     "./tests/unit/data/sboms/cachito_gomod.bom.json",
                 ],
                 id="merge_our_own_cyclonedx",
             ),
             pytest.param(
                 [
-                    "./tests/unit/data/sboms/cachi2.bom.json",
+                    "./tests/unit/data/sboms/hermeto.bom.json",
                     "./tests/unit/data/sboms/cachito_gomod.bom.json",
                     "./tests/unit/data/sboms/cachito_gomod_nodeps.bom.json",
                 ],
@@ -978,7 +979,7 @@ class TestMergeSboms:
         request: pytest.FixtureRequest,
         sbom_files_to_merge: list[str],
     ) -> None:
-        prefix = f"cachi2-{Path(__file__).stem}-{request.node.callspec.id}-"
+        prefix = f"{APP_NAME}-{Path(__file__).stem}-{request.node.callspec.id}-"
         with tempfile.NamedTemporaryFile(prefix=prefix) as fp:
             invoke_expecting_sucess(app, ["merge-sboms", "-o", fp.name, *sbom_files_to_merge])
             assert Path(fp.name).lstat().st_size > 0, "SBOM failed to be written to output file!"
@@ -987,7 +988,7 @@ class TestMergeSboms:
         "sbom_files_to_merge",
         [
             [
-                "./tests/unit/data/sboms/cachi2.bom.spdx.json",
+                "./tests/unit/data/sboms/hermeto.bom.spdx.json",
                 "./tests/unit/data/something.simple0.100.0.spdx.pretty.json",
             ],
         ],
@@ -997,7 +998,7 @@ class TestMergeSboms:
         request: pytest.FixtureRequest,
         sbom_files_to_merge: list[str],
     ) -> None:
-        prefix = f"cachi2-{Path(__file__).stem}-{request.node.callspec.id}-"
+        prefix = f"{APP_NAME}-{Path(__file__).stem}-{request.node.callspec.id}-"
         with tempfile.NamedTemporaryFile(prefix=prefix) as fp:
             invoke_expecting_sucess(
                 app,
@@ -1010,7 +1011,7 @@ class TestMergeSboms:
         [
             pytest.param(
                 [
-                    "./tests/unit/data/sboms/cachi2.bom.json",
+                    "./tests/unit/data/sboms/hermeto.bom.json",
                     "./tests/unit/data/sboms/syft.bom.spdx.json",
                 ],
                 id="merge_mixed_format",
@@ -1022,7 +1023,7 @@ class TestMergeSboms:
         request: pytest.FixtureRequest,
         sbom_files_to_merge: list[str],
     ) -> None:
-        prefix = f"cachi2-{Path(__file__).stem}-{request.node.callspec.id}-"
+        prefix = f"{APP_NAME}-{Path(__file__).stem}-{request.node.callspec.id}-"
         with tempfile.NamedTemporaryFile(prefix=prefix) as fp:
             invoke_expecting_sucess(
                 app,

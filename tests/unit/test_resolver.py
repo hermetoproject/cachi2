@@ -5,12 +5,12 @@ from unittest import mock
 
 import pytest
 
-from cachi2.core import resolver
-from cachi2.core.errors import UnsupportedFeature
-from cachi2.core.models.input import Request
-from cachi2.core.models.output import BuildConfig, EnvironmentVariable, ProjectFile, RequestOutput
-from cachi2.core.models.sbom import Component
-from cachi2.core.rooted_path import RootedPath
+from hermeto.core import resolver
+from hermeto.core.errors import UnsupportedFeature
+from hermeto.core.models.input import Request
+from hermeto.core.models.output import BuildConfig, EnvironmentVariable, ProjectFile, RequestOutput
+from hermeto.core.models.sbom import Component
+from hermeto.core.rooted_path import RootedPath
 
 GOMOD_OUTPUT = RequestOutput.from_obj_list(
     components=[
@@ -109,7 +109,7 @@ def test_resolve_packages(tmp_path: Path) -> None:
         ),
     ],
 )
-@mock.patch("cachi2.core.resolver._resolve_packages")
+@mock.patch("hermeto.core.resolver._resolve_packages")
 def test_source_dir_copy(
     mock_resolve_packages: mock.Mock,
     packages: list[dict[str, str]],
@@ -129,7 +129,7 @@ def test_source_dir_copy(
             # assert a temporary directory is being used
             assert tmp_dir_name != tmp_path.name
             assert tmp_dir_name.startswith("tmp")
-            assert tmp_dir_name.endswith(".cachi2-source-copy")
+            assert tmp_dir_name.endswith(".hermeto-source-copy")
         else:
             # assert the original source_dir is being used
             assert request.source_dir == RootedPath(tmp_path)
@@ -144,7 +144,7 @@ def test_source_dir_copy(
     assert request.source_dir == RootedPath(tmp_path)
 
 
-@mock.patch("cachi2.core.resolver._resolve_packages")
+@mock.patch("hermeto.core.resolver._resolve_packages")
 def test_project_files_fix_for_work_copy(
     mock_resolve_packages: mock.Mock,
     tmp_path: Path,
@@ -158,7 +158,7 @@ def test_project_files_fix_for_work_copy(
     def _resolve_packages(request: Request) -> RequestOutput:
         # assert request is based on a copy of the source dir
         assert request.source_dir.path != tmp_path
-        assert request.source_dir.path.name.endswith(".cachi2-source-copy")
+        assert request.source_dir.path.name.endswith(".hermeto-source-copy")
 
         # return a project file pointing to the source dir copy
         return RequestOutput(

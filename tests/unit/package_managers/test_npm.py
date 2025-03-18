@@ -8,12 +8,13 @@ from unittest import mock
 import pytest
 from packageurl import PackageURL
 
-from cachi2.core.checksum import ChecksumInfo
-from cachi2.core.errors import PackageRejected, UnexpectedFormat, UnsupportedFeature
-from cachi2.core.models.input import Request
-from cachi2.core.models.output import ProjectFile, RequestOutput
-from cachi2.core.models.sbom import Component, Property
-from cachi2.core.package_managers.npm import (
+from hermeto import APP_NAME
+from hermeto.core.checksum import ChecksumInfo
+from hermeto.core.errors import PackageRejected, UnexpectedFormat, UnsupportedFeature
+from hermeto.core.models.input import Request
+from hermeto.core.models.output import ProjectFile, RequestOutput
+from hermeto.core.models.sbom import Component, Property
+from hermeto.core.package_managers.npm import (
     NormalizedUrl,
     NpmComponentInfo,
     Package,
@@ -31,8 +32,8 @@ from cachi2.core.package_managers.npm import (
     _update_vcs_url_with_full_hostname,
     fetch_npm_source,
 )
-from cachi2.core.rooted_path import RootedPath
-from cachi2.core.scm import RepoID
+from hermeto.core.rooted_path import RootedPath
+from hermeto.core.scm import RepoID
 from tests.common_utils import GIT_REF
 
 MOCK_REPO_ID = RepoID("https://github.com/foolish/bar.git", "abcdef1234")
@@ -55,7 +56,7 @@ def npm_request(rooted_tmp_path: RootedPath, npm_input_packages: list[dict[str, 
 
 @pytest.fixture
 def mock_get_repo_id() -> Iterator[mock.Mock]:
-    with mock.patch("cachi2.core.package_managers.npm.get_repo_id") as mocked_get_repo_id:
+    with mock.patch("hermeto.core.package_managers.npm.get_repo_id") as mocked_get_repo_id:
         mocked_get_repo_id.return_value = MOCK_REPO_ID
         yield mocked_get_repo_id
 
@@ -659,7 +660,7 @@ class TestPurlifier:
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
                         Property(name="cdx:npm:package:development", value="true"),
-                        Property(name="cachi2:found_by", value="cachi2"),
+                        Property(name=f"{APP_NAME}:found_by", value=f"{APP_NAME}"),
                     ],
                 ),
             ],
@@ -682,7 +683,7 @@ class TestPurlifier:
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
                         Property(name="cdx:npm:package:bundled", value="true"),
-                        Property(name="cachi2:found_by", value="cachi2"),
+                        Property(name=f"{APP_NAME}:found_by", value=f"{APP_NAME}"),
                     ],
                 ),
             ],
@@ -705,7 +706,7 @@ class TestPurlifier:
                     purl="pkg:npm/foo@1.0.0",
                     properties=[
                         Property(
-                            name="cachi2:missing_hash:in_file",
+                            name=f"{APP_NAME}:missing_hash:in_file",
                             value="path/to/foo/package-lock.json",
                         ),
                     ],
@@ -858,7 +859,7 @@ def test_generate_component_list(
         ),
     ],
 )
-@mock.patch("cachi2.core.package_managers.npm._resolve_npm")
+@mock.patch("hermeto.core.package_managers.npm._resolve_npm")
 def test_fetch_npm_source(
     mock_resolve_npm: mock.Mock,
     npm_request: Request,
@@ -1393,9 +1394,9 @@ def test_resolve_npm_validation(
         ),
     ],
 )
-@mock.patch("cachi2.core.package_managers.npm._get_npm_dependencies")
-@mock.patch("cachi2.core.package_managers.npm._update_package_lock_with_local_paths")
-@mock.patch("cachi2.core.package_managers.npm._update_package_json_files")
+@mock.patch("hermeto.core.package_managers.npm._get_npm_dependencies")
+@mock.patch("hermeto.core.package_managers.npm._update_package_lock_with_local_paths")
+@mock.patch("hermeto.core.package_managers.npm._update_package_json_files")
 def test_resolve_npm(
     update_package_json_files: mock.Mock,
     update_package_lock_with_local_paths: mock.Mock,
@@ -1459,13 +1460,13 @@ def test_resolve_npm_unsupported_lockfileversion(rooted_tmp_path: RootedPath) ->
     "vcs, expected",
     [
         (
-            (f"git+ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps.git#{GIT_REF}"),
+            (f"git+ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps.git#{GIT_REF}"),
             {
-                "url": "ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps.git",
+                "url": "ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps.git",
                 "ref": GIT_REF,
                 "host": "bitbucket.org",
                 "namespace": "cachi-testing",
-                "repo": "cachi2-without-deps",
+                "repo": "hermeto-without-deps",
             },
         ),
     ],
@@ -1475,9 +1476,9 @@ def test_extract_git_info_npm(vcs: NormalizedUrl, expected: Dict[str, str]) -> N
 
 
 def test_extract_git_info_with_missing_ref() -> None:
-    vcs = NormalizedUrl("git+ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps.git")
+    vcs = NormalizedUrl("git+ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps.git")
     expected_error = (
-        "ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps.git "
+        "ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps.git "
         "is not valid VCS url. ref is missing."
     )
     with pytest.raises(UnexpectedFormat, match=expected_error):
@@ -1493,8 +1494,8 @@ def test_extract_git_info_with_missing_ref() -> None:
         ),
         ("github:kevva/is-positive", "git+ssh://git@github.com/kevva/is-positive.git"),
         (
-            "bitbucket:cachi-testing/cachi2-without-deps#9e164b9",
-            "git+ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps.git#9e164b9",
+            "bitbucket:cachi-testing/hermeto-without-deps#9e164b9",
+            "git+ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps.git#9e164b9",
         ),
         ("gitlab:foo/bar#YOLO", "git+ssh://git@gitlab.com/foo/bar.git#YOLO"),
     ],
@@ -1503,21 +1504,21 @@ def test_update_vcs_url_with_full_hostname(vcs: str, expected: str) -> None:
     assert _update_vcs_url_with_full_hostname(vcs) == expected
 
 
-@mock.patch("cachi2.core.package_managers.npm.clone_as_tarball")
+@mock.patch("hermeto.core.package_managers.npm.clone_as_tarball")
 def test_clone_repo_pack_archive(
     mock_clone_as_tarball: mock.Mock, rooted_tmp_path: RootedPath
 ) -> None:
-    vcs = NormalizedUrl("git+ssh://bitbucket.org/cachi-testing/cachi2-without-deps.git#9e164b9")
+    vcs = NormalizedUrl("git+ssh://bitbucket.org/cachi-testing/hermeto-without-deps.git#9e164b9")
     download_path = _clone_repo_pack_archive(vcs, rooted_tmp_path)
     expected_path = rooted_tmp_path.join_within_root(
         "bitbucket.org",
         "cachi-testing",
-        "cachi2-without-deps",
-        "cachi2-without-deps-external-gitcommit-9e164b9.tgz",
+        "hermeto-without-deps",
+        "hermeto-without-deps-external-gitcommit-9e164b9.tgz",
     )
     assert download_path.path.parent.is_dir()
     mock_clone_as_tarball.assert_called_once_with(
-        "ssh://bitbucket.org/cachi-testing/cachi2-without-deps.git", "9e164b9", expected_path.path
+        "ssh://bitbucket.org/cachi-testing/hermeto-without-deps.git", "9e164b9", expected_path.path
     )
 
 
@@ -1577,9 +1578,9 @@ def test_should_replace_dependency(dependency_version: str, expected_result: boo
                     "version": "2.0.0",
                     "integrity": "sha512-YOLO33333==",
                 },
-                "git+ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps-second.git#09992d418fc44a2895b7a9ff27c4e32d6f74a982": {
+                "git+ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps-second.git#09992d418fc44a2895b7a9ff27c4e32d6f74a982": {
                     "version": "2.0.0",
-                    "name": "cachi2-without-deps-second",
+                    "name": "hermeto-without-deps-second",
                 },
                 # Test short representation of git reference
                 "git+ssh://git@github.com/kevva/is-positive.git#97edff6f": {
@@ -1589,13 +1590,13 @@ def test_should_replace_dependency(dependency_version: str, expected_result: boo
                 # The name of the package is different from the repo name, we expect the result archive to have the repo name in it
                 "git+ssh://git@gitlab.foo.bar.com/osbs/cachito-tests.git#c300503": {
                     "integrity": "sha512-FOOOOOOOOOYOLO==",
-                    "name": "gitlab-cachi2-npm-without-deps-second",
+                    "name": "gitlab-hermeto-npm-without-deps-second",
                 },
             },
             {
                 "https://github.com/cachito-testing/ms-1.0.0.tgz": "external-ms/ms-external-sha256-YOLO1111.tgz",
                 "https://github.com/cachito-testing/ms-2.0.0.tgz": "external-ms/ms-external-sha256-YOLO2222.tgz",
-                "git+ssh://git@bitbucket.org/cachi-testing/cachi2-without-deps-second.git#09992d418fc44a2895b7a9ff27c4e32d6f74a982": "bitbucket.org/cachi-testing/cachi2-without-deps-second/cachi2-without-deps-second-external-gitcommit-09992d418fc44a2895b7a9ff27c4e32d6f74a982.tgz",
+                "git+ssh://git@bitbucket.org/cachi-testing/hermeto-without-deps-second.git#09992d418fc44a2895b7a9ff27c4e32d6f74a982": "bitbucket.org/cachi-testing/hermeto-without-deps-second/hermeto-without-deps-second-external-gitcommit-09992d418fc44a2895b7a9ff27c4e32d6f74a982.tgz",
                 "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.0.11.tgz": "types-react-dom-18.0.11.tgz",
                 "https://registry.yarnpkg.com/abbrev/-/abbrev-2.0.0.tgz": "abbrev-2.0.0.tgz",
                 "git+ssh://git@github.com/kevva/is-positive.git#97edff6f": "github.com/kevva/is-positive/is-positive-external-gitcommit-97edff6f.tgz",
@@ -1604,10 +1605,10 @@ def test_should_replace_dependency(dependency_version: str, expected_result: boo
         ),
     ],
 )
-@mock.patch("cachi2.core.package_managers.npm.async_download_files")
-@mock.patch("cachi2.core.package_managers.npm.must_match_any_checksum")
-@mock.patch("cachi2.core.checksum.ChecksumInfo.from_sri")
-@mock.patch("cachi2.core.package_managers.npm.clone_as_tarball")
+@mock.patch("hermeto.core.package_managers.npm.async_download_files")
+@mock.patch("hermeto.core.package_managers.npm.must_match_any_checksum")
+@mock.patch("hermeto.core.checksum.ChecksumInfo.from_sri")
+@mock.patch("hermeto.core.package_managers.npm.clone_as_tarball")
 def test_get_npm_dependencies(
     mock_clone_as_tarball: mock.Mock,
     mock_from_sri: mock.Mock,

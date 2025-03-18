@@ -5,6 +5,8 @@ from typing import List
 
 import pytest
 
+from hermeto import APP_NAME
+
 from . import utils
 
 log = logging.getLogger(__name__)
@@ -74,7 +76,7 @@ log = logging.getLogger(__name__)
                 expected_output=(
                     "UnsupportedFeature: Direct references with 'file' scheme are not supported, "
                     "'file:///tmp/packages.zip'\n  "
-                    "If you need Cachi2 to support this feature, please contact the maintainers."
+                    f"If you need {APP_NAME} to support this feature, please contact the maintainers."
                 ),
             ),
             id="pip_local_path",
@@ -134,15 +136,15 @@ log = logging.getLogger(__name__)
             ),
             id="pip_custom_index",
             marks=pytest.mark.skipif(
-                os.getenv("CACHI2_TEST_LOCAL_PYPISERVER") != "true",
-                reason="CACHI2_TEST_LOCAL_PYPISERVER!=true",
+                os.getenv("HERMETO_TEST_LOCAL_PYPISERVER") != "true",
+                reason="HERMETO_TEST_LOCAL_PYPISERVER!=true",
             ),
         ),
     ],
 )
 def test_pip_packages(
     test_params: utils.TestParameters,
-    cachi2_image: utils.ContainerImage,
+    hermeto_image: utils.ContainerImage,
     tmp_path: Path,
     test_repo_dir: Path,
     test_data_dir: Path,
@@ -157,7 +159,7 @@ def test_pip_packages(
     test_case = request.node.callspec.id
 
     utils.fetch_deps_and_check_output(
-        tmp_path, test_case, test_params, test_repo_dir, test_data_dir, cachi2_image
+        tmp_path, test_case, test_params, test_repo_dir, test_data_dir, hermeto_image
     )
 
 
@@ -210,7 +212,7 @@ def test_e2e_pip(
     test_params: utils.TestParameters,
     check_cmd: List[str],
     expected_cmd_output: str,
-    cachi2_image: utils.ContainerImage,
+    hermeto_image: utils.ContainerImage,
     tmp_path: Path,
     test_repo_dir: Path,
     test_data_dir: Path,
@@ -225,7 +227,7 @@ def test_e2e_pip(
     test_case = request.node.callspec.id
 
     utils.fetch_deps_and_check_output(
-        tmp_path, test_case, test_params, test_repo_dir, test_data_dir, cachi2_image
+        tmp_path, test_case, test_params, test_repo_dir, test_data_dir, hermeto_image
     )
 
     utils.build_image_and_check_cmd(
@@ -235,5 +237,5 @@ def test_e2e_pip(
         test_case,
         check_cmd,
         expected_cmd_output,
-        cachi2_image,
+        hermeto_image,
     )

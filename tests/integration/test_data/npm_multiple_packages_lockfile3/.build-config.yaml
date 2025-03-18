@@ -3,13 +3,13 @@ project_files:
 - abspath: ${test_case_tmp_path}/first_pkg/package-lock.json
   template: |
     {
-      "name": "npm-cachi2-first-package",
+      "name": "npm-hermeto-first-package",
       "version": "1.0.0",
       "lockfileVersion": 3,
       "requires": true,
       "packages": {
         "": {
-          "name": "npm-cachi2-first-package",
+          "name": "npm-hermeto-first-package",
           "version": "1.0.0",
           "license": "ISC",
           "dependencies": {
@@ -718,7 +718,7 @@ project_files:
 - abspath: ${test_case_tmp_path}/first_pkg/package.json
   template: |
     {
-      "name": "npm-cachi2-first-package",
+      "name": "npm-hermeto-first-package",
       "version": "1.0.0",
       "description": "",
       "main": "index.js",
@@ -747,17 +747,17 @@ project_files:
 - abspath: ${test_case_tmp_path}/second_pkg/package-lock.json
   template: |
     {
-      "name": "npm-cachi2-second-pkg",
+      "name": "npm-hermeto-second-pkg",
       "version": "1.0.0",
       "lockfileVersion": 3,
       "requires": true,
       "packages": {
         "": {
-          "name": "npm-cachi2-second-pkg",
+          "name": "npm-hermeto-second-pkg",
           "version": "1.0.0",
           "license": "ISC",
           "dependencies": {
-            "bitbucket-cachi2-npm-without-deps-second": "",
+            "bitbucket-hermeto-npm-without-deps-second": "",
             "debug": "",
             "express": "^4.18.2",
             "sax": "0.1.1"
@@ -780,9 +780,9 @@ project_files:
           "resolved": "file://${output_dir}/deps/npm/array-flatten-1.1.1.tgz",
           "integrity": "sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg=="
         },
-        "node_modules/bitbucket-cachi2-npm-without-deps-second": {
+        "node_modules/bitbucket-hermeto-npm-without-deps-second": {
           "version": "2.0.0",
-          "resolved": "file://${output_dir}/deps/npm/bitbucket.org/cachi-testing/cachi2-without-deps-second/cachi2-without-deps-second-external-gitcommit-09992d418fc44a2895b7a9ff27c4e32d6f74a982.tgz"
+          "resolved": "file://${output_dir}/deps/npm/bitbucket.org/cachi-testing/hermeto-without-deps-second/hermeto-without-deps-second-external-gitcommit-09992d418fc44a2895b7a9ff27c4e32d6f74a982.tgz"
         },
         "node_modules/body-parser": {
           "version": "1.20.1",
@@ -1428,7 +1428,7 @@ project_files:
 - abspath: ${test_case_tmp_path}/second_pkg/package.json
   template: |
     {
-      "name": "npm-cachi2-second-pkg",
+      "name": "npm-hermeto-second-pkg",
       "version": "1.0.0",
       "main": "index.js",
       "scripts": {
@@ -1446,7 +1446,7 @@ project_files:
       "homepage": "https://github.com/cachito-testing/cachito-npm-workspaces#readme",
       "description": "",
       "dependencies": {
-        "bitbucket-cachi2-npm-without-deps-second": "",
+        "bitbucket-hermeto-npm-without-deps-second": "",
         "debug": "",
         "express": "^4.18.2",
         "sax": "0.1.1"
@@ -1455,13 +1455,13 @@ project_files:
 - abspath: ${test_case_tmp_path}/third_pkg/package-lock.json
   template: |
     {
-      "name": "npm-cachi2-third-package",
+      "name": "npm-hermeto-third-package",
       "version": "1.0.0",
       "lockfileVersion": 3,
       "requires": true,
       "packages": {
         "": {
-          "name": "npm-cachi2-third-package",
+          "name": "npm-hermeto-third-package",
           "version": "1.0.0",
           "license": "ISC",
           "dependencies": {
@@ -1562,7 +1562,7 @@ project_files:
 - abspath: ${test_case_tmp_path}/third_pkg/package.json
   template: |
     {
-      "name": "npm-cachi2-third-package",
+      "name": "npm-hermeto-third-package",
       "version": "1.0.0",
       "main": "index.js",
       "scripts": {

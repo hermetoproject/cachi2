@@ -18,8 +18,8 @@ import requests
 import yaml
 from git import Repo
 
-from cachi2.core import resolver
-from cachi2.interface.cli import DEFAULT_OUTPUT
+from hermeto.core import resolver
+from hermeto.interface.cli import DEFAULT_OUTPUT
 
 # force IPv4 localhost as 'localhost' can resolve with IPv6 as well
 TEST_SERVER_LOCALHOST = "127.0.0.1"
@@ -116,7 +116,7 @@ class ContainerImage:
             raise RuntimeError(f"Image deletion failed. Output:{output}")
 
 
-class Cachi2Image(ContainerImage):
+class HermetoImage(ContainerImage):
     def run_cmd_on_image(
         self,
         cmd: list[str],
@@ -124,7 +124,7 @@ class Cachi2Image(ContainerImage):
         mounts: Sequence[tuple[StrPath, StrPath]] = (),
         net: Optional[str] = "host",
     ) -> Tuple[str, int]:
-        netrc_content = os.getenv("CACHI2_TEST_NETRC_CONTENT")
+        netrc_content = os.getenv("HERMETO_TEST_NETRC_CONTENT")
         if netrc_content:
             with tempfile.TemporaryDirectory() as netrc_tmpdir:
                 netrc_path = Path(netrc_tmpdir, ".netrc")
@@ -156,7 +156,7 @@ def build_image_for_test_case(
 ) -> ContainerImage:
     # mounts the source code of the test case
     source_dir_mount_point = "/src"
-    # mounts the output of the fetch-deps command and cachi2.env
+    # mounts the output of the fetch-deps command and hermeto.env
     output_dir_mount_point = "/tmp"
 
     cmd = [
@@ -329,7 +329,7 @@ def update_test_data_if_needed(path: Path, data: dict[str, Any]) -> None:
     else:
         raise ValueError(f"Don't know how to serialize data to {path.name} :(")
 
-    if os.getenv("CACHI2_GENERATE_TEST_DATA") == "true":
+    if os.getenv("HERMETO_GENERATE_TEST_DATA") == "true":
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as file:
             file.write(serialize(data))
@@ -348,7 +348,7 @@ def fetch_deps_and_check_output(
     test_params: TestParameters,
     test_repo_dir: Path,
     test_data_dir: Path,
-    cachi2_image: ContainerImage,
+    hermeto_image: ContainerImage,
     mounts: Sequence[tuple[StrPath, StrPath]] = (),
 ) -> None:
     """
@@ -359,7 +359,7 @@ def fetch_deps_and_check_output(
     :param test_params: Test case arguments
     :param test_repo_dir: Path to source repository
     :param test_data_dir: Relative path to expected output test data
-    :param cachi2_image: ContainerImage instance with Cachi2 image
+    :param hermeto_image: ContainerImage instance with Hermeto image
     :param mounts: Additional volumes to be mounted to the image
     :return: None
     """
@@ -383,7 +383,7 @@ def fetch_deps_and_check_output(
 
     cmd.append(json.dumps(test_params.packages))
 
-    (output, exit_code) = cachi2_image.run_cmd_on_image(
+    (output, exit_code) = hermeto_image.run_cmd_on_image(
         cmd,
         tmp_path,
         [*mounts, (test_repo_dir, test_repo_dir)],
@@ -453,10 +453,10 @@ def build_image_and_check_cmd(
     test_case: str,
     check_cmd: List,
     expected_cmd_output: str,
-    cachi2_image: ContainerImage,
+    hermeto_image: ContainerImage,
 ) -> None:
     """
-    Build image and check that Cachi2 provided sources properly.
+    Build image and check that Hermeto provided sources properly.
 
     :param tmp_path: pytest fixture for temporary directory
     :param test_repo_dir: Path to source repository
@@ -464,7 +464,7 @@ def build_image_and_check_cmd(
     :param test_case: Test case name retrieved from pytest id
     :param check_cmd: Command to be run on image to check provided sources
     :param expected_cmd_output: Expected output of check_cmd
-    :param cachi2_image: ContainerImage instance with Cachi2 image
+    :param hermeto_image: ContainerImage instance with Hermeto image
     :return: None
     """
     output_dir = tmp_path.joinpath(DEFAULT_OUTPUT)
@@ -480,8 +480,8 @@ def build_image_and_check_cmd(
         f"/tmp/{DEFAULT_OUTPUT}",
     ]
 
-    with cachi2_image:
-        (output, exit_code) = cachi2_image.run_cmd_on_image(cmd, tmp_path)
+    with hermeto_image:
+        (output, exit_code) = hermeto_image.run_cmd_on_image(cmd, tmp_path)
         assert exit_code == 0, f"Env var file creation failed. output-cmd: {output}"
 
         log.info("Injecting project files")
@@ -491,7 +491,7 @@ def build_image_and_check_cmd(
             "--for-output-dir",
             f"/tmp/{DEFAULT_OUTPUT}",
         ]
-        (output, exit_code) = cachi2_image.run_cmd_on_image(
+        (output, exit_code) = hermeto_image.run_cmd_on_image(
             cmd, tmp_path, [(test_repo_dir, test_repo_dir)]
         )
         assert exit_code == 0, f"Injecting project files failed. output-cmd: {output}"
@@ -575,7 +575,7 @@ def tested_object_name(path: Path) -> str:
 def affects_pm(change: Path) -> bool:
     """Check if a pm is affected.
 
-    >>> affects_pm(Path('cachi2/core/config.py'))
+    >>> affects_pm(Path('hermeto/core/config.py'))
     False
     >>> affects_pm(Path('requirements.txt'))
     False
@@ -583,11 +583,11 @@ def affects_pm(change: Path) -> bool:
     True
     >>> affects_pm(Path('tests/integration/utils.py'))
     False
-    >>> affects_pm(Path('cachi2/core/package_managers/rpm/main.py'))
+    >>> affects_pm(Path('hermeto/core/package_managers/rpm/main.py'))
     True
-    >>> affects_pm(Path('cachi2/core/package_managers/general.py'))
+    >>> affects_pm(Path('hermeto/core/package_managers/general.py'))
     False
-    >>> affects_pm(Path('cachi2/core/package_managers/gomod.py'))
+    >>> affects_pm(Path('hermeto/core/package_managers/gomod.py'))
     True
     """
 
@@ -608,9 +608,9 @@ def pm_name(pm_change: Path) -> str:
 
     >>> pm_name(Path('tests/integration/test_gomod.py'))
     'gomod'
-    >>> pm_name(Path('cachi2/core/package_managers/rpm/main.py'))
+    >>> pm_name(Path('hermeto/core/package_managers/rpm/main.py'))
     'rpm'
-    >>> pm_name(Path('cachi2/core/package_managers/pip.py'))
+    >>> pm_name(Path('hermeto/core/package_managers/pip.py'))
     'pip'
     """
     if (name := name_of(pm_change)) in SUPPORTED_PMS:
@@ -630,7 +630,7 @@ def is_testable_code(c: Path) -> bool:
 
     Does this by checking if a change is in watched subtree.
 
-    >>> is_testable_code(Path('cachi2/core/config.py'))
+    >>> is_testable_code(Path('hermeto/core/config.py'))
     True
     >>> is_testable_code(Path('tests/integration/test_gomod.py'))
     True
@@ -672,31 +672,31 @@ def just_some_package_managers_were_affected_by(changes: tuple[Path, ...]) -> bo
 
     >>> just_some_package_managers_were_affected_by((Path('tests/integration/test_pip.py'),))
     True
-    >>> c = Path('cachi2/core/package_managers/pip.py'), Path('tests/integration/test_pip.py')
+    >>> c = Path('hermeto/core/package_managers/pip.py'), Path('tests/integration/test_pip.py')
     >>> just_some_package_managers_were_affected_by(c)
     True
-    >>> c = (Path('cachi2/core/package_managers/rpm/main.py'),)
+    >>> c = (Path('hermeto/core/package_managers/rpm/main.py'),)
     >>> just_some_package_managers_were_affected_by(c)
     True
-    >>> c = Path('cachi2/core/package_managers/gomod.py'), Path('tests/integration/test_pip.py')
+    >>> c = Path('hermeto/core/package_managers/gomod.py'), Path('tests/integration/test_pip.py')
     >>> just_some_package_managers_were_affected_by(c)
     True
-    >>> c = Path('cachi2/core/package_managers/general.py'), Path('tests/integration/test_pip.py')
+    >>> c = Path('hermeto/core/package_managers/general.py'), Path('tests/integration/test_pip.py')
     >>> just_some_package_managers_were_affected_by(c)
     False
-    >>> c = (Path('cachi2/core/package_managers/general.py'),
-    ...      Path('cachi2/core/package_managers/pip.py'))
+    >>> c = (Path('hermeto/core/package_managers/general.py'),
+    ...      Path('hermeto/core/package_managers/pip.py'))
     >>> just_some_package_managers_were_affected_by(c)
     False
     >>> c = Path('tests/integration/utils.py'), Path('tests/integration/test_pip.py')
     >>> just_some_package_managers_were_affected_by(c)
     False
-    >>> c = Path('cachi2/core/package_managers/pip.py'), Path('tests/integration/utils.py')
+    >>> c = Path('hermeto/core/package_managers/pip.py'), Path('tests/integration/utils.py')
     >>> just_some_package_managers_were_affected_by(c)
     False
-    >>> just_some_package_managers_were_affected_by((Path('cachi2/core/utils.py'),))
+    >>> just_some_package_managers_were_affected_by((Path('hermeto/core/utils.py'),))
     False
-    >>> c = (Path('cachi2/core/package_managers/general.py'),)
+    >>> c = (Path('hermeto/core/package_managers/general.py'),)
     >>> just_some_package_managers_were_affected_by(c)
     False
     """
@@ -704,7 +704,7 @@ def just_some_package_managers_were_affected_by(changes: tuple[Path, ...]) -> bo
 
 
 def must_test_all() -> bool:
-    return os.getenv("CACHI2_RUN_ALL_INTEGRATION_TESTS", "false").lower() == "true"
+    return os.getenv("HERMETO_RUN_ALL_INTEGRATION_TESTS", "false").lower() == "true"
 
 
 def determine_integration_tests_to_skip() -> Any:

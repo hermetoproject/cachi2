@@ -9,23 +9,24 @@ from urllib.parse import quote
 import pytest
 from semver import Version
 
-from cachi2.core.errors import PackageRejected, UnsupportedFeature
-from cachi2.core.models.sbom import Component, Patch, PatchDiff, Pedigree
-from cachi2.core.package_managers.yarn.locators import (
+from hermeto import APP_NAME
+from hermeto.core.errors import PackageRejected, UnsupportedFeature
+from hermeto.core.models.sbom import Component, Patch, PatchDiff, Pedigree
+from hermeto.core.package_managers.yarn.locators import (
     NpmLocator,
     PatchLocator,
     WorkspaceLocator,
     parse_locator,
 )
-from cachi2.core.package_managers.yarn.project import PackageJson, Project, YarnRc
-from cachi2.core.package_managers.yarn.resolver import (
+from hermeto.core.package_managers.yarn.project import PackageJson, Project, YarnRc
+from hermeto.core.package_managers.yarn.resolver import (
     Package,
     _ComponentResolver,
     create_components,
     resolve_packages,
 )
-from cachi2.core.rooted_path import RootedPath
-from cachi2.core.scm import RepoID
+from hermeto.core.rooted_path import RootedPath
+from hermeto.core.scm import RepoID
 
 MOCK_REPO_ID = RepoID("https://github.com/org/project.git", "fffffff")
 MOCK_REPO_VCS_URL = quote("git+https://github.com/org/project.git@fffffff", safe="://")
@@ -188,7 +189,7 @@ EXPECT_PACKAGES = [
 ]
 
 
-@mock.patch("cachi2.core.package_managers.yarn.resolver.run_yarn_cmd")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.run_yarn_cmd")
 def test_resolve_packages(mock_run_yarn_cmd: mock.Mock, rooted_tmp_path: RootedPath) -> None:
     yarn_info_output = mock_yarn_info_output(YARN_INFO_OUTPUTS)
     mock_run_yarn_cmd.return_value = yarn_info_output
@@ -199,7 +200,7 @@ def test_resolve_packages(mock_run_yarn_cmd: mock.Mock, rooted_tmp_path: RootedP
         assert package.parsed_locator == parse_locator(package.raw_locator)
 
 
-@mock.patch("cachi2.core.package_managers.yarn.resolver.run_yarn_cmd")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.run_yarn_cmd")
 def test_validate_unsupported_locators(
     mock_run_yarn_cmd: mock.Mock, rooted_tmp_path: RootedPath, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -247,9 +248,9 @@ def test_validate_unsupported_locators(
         resolve_packages(rooted_tmp_path)
 
     assert caplog.messages == [
-        "Cachi2 does not support Git or Exec dependencies for Yarn Berry: ccto-wo-deps@git@github.com:cachito-testing/cachito-npm-without-deps.git#commit=2f0ce1d7b1f8b35572d919428b965285a69583f6",
-        "Cachi2 does not support Git or Exec dependencies for Yarn Berry: ccto-wo-deps@git@github.com:cachito-testing/cachito-npm-without-deps.git#commit=2f0ce1d7b1f8b35572d919428b965285a69583f6",
-        "Cachi2 does not support Git or Exec dependencies for Yarn Berry: holy-hand-grenade@exec:./generate-holy-hand-grenade.js#./generate-holy-hand-grenade.js::hash=3b5cbd&locator=berryscary%40workspace%3A.",
+        f"{APP_NAME} does not support Git or Exec dependencies for Yarn Berry: ccto-wo-deps@git@github.com:cachito-testing/cachito-npm-without-deps.git#commit=2f0ce1d7b1f8b35572d919428b965285a69583f6",
+        f"{APP_NAME} does not support Git or Exec dependencies for Yarn Berry: ccto-wo-deps@git@github.com:cachito-testing/cachito-npm-without-deps.git#commit=2f0ce1d7b1f8b35572d919428b965285a69583f6",
+        f"{APP_NAME} does not support Git or Exec dependencies for Yarn Berry: holy-hand-grenade@exec:./generate-holy-hand-grenade.js#./generate-holy-hand-grenade.js::hash=3b5cbd&locator=berryscary%40workspace%3A.",
     ]
 
 
@@ -309,7 +310,7 @@ def mock_project(project_dir: RootedPath) -> Project:
     )
 
 
-@mock.patch("cachi2.core.package_managers.yarn.resolver.get_repo_id")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.get_repo_id")
 @pytest.mark.parametrize(
     "mocked_package, expect_component, expect_logs",
     [
@@ -560,8 +561,8 @@ def test_create_components_single_package(
     assert caplog.messages == expect_logs
 
 
-@mock.patch("cachi2.core.package_managers.yarn.resolver.get_repo_id")
-@mock.patch("cachi2.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.get_repo_id")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
 def test_create_components_patched_packages(
     mock_get_yarn_version: mock.Mock,
     mock_get_repo_id: mock.Mock,
@@ -641,8 +642,8 @@ def test_create_components_patched_packages(
     assert components == expect_components
 
 
-@mock.patch("cachi2.core.package_managers.yarn.resolver.get_repo_id")
-@mock.patch("cachi2.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.get_repo_id")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
 def test_create_components_patched_packages_with_multiple_paths(
     mock_get_yarn_version: mock.Mock,
     mock_get_repo_id: mock.Mock,
@@ -929,8 +930,8 @@ def test_create_components_cache_path_reported_but_missing(rooted_tmp_path: Root
         )
 
 
-@mock.patch("cachi2.core.package_managers.yarn.resolver.get_repo_id")
-@mock.patch("cachi2.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.get_repo_id")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
 def test_get_pedigree(
     mock_get_yarn_version: mock.Mock, mock_get_repo_id: mock.Mock, rooted_tmp_path: RootedPath
 ) -> None:
@@ -1007,8 +1008,8 @@ def test_get_pedigree(
         ),
     ],
 )
-@mock.patch("cachi2.core.package_managers.yarn.resolver.get_repo_id")
-@mock.patch("cachi2.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.get_repo_id")
+@mock.patch("hermeto.core.package_managers.yarn.resolver.extract_yarn_version_from_env")
 def test_get_pedigree_with_unsupported_locators(
     mock_get_yarn_version: mock.Mock,
     mock_get_repo_id: mock.Mock,

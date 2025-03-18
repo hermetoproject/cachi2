@@ -55,7 +55,7 @@ def parse_supported_python_versions() -> list[str]:
 def bandit(session: Session) -> None:
     """Run bandit on cachi2 directory and noxfile.py."""
     install_requirements(session)
-    cmd = "bandit -c pyproject.toml -r cachi2 noxfile.py"
+    cmd = "bandit -c pyproject.toml -r hermeto noxfile.py"
     session.run(*cmd.split(), *session.posargs, silent=True)
 
 
@@ -63,7 +63,7 @@ def bandit(session: Session) -> None:
 def black(session: Session) -> None:
     """Run black on cachi2 and tests directories and noxfile.py."""
     install_requirements(session)
-    cmd = "black --check --diff cachi2 tests noxfile.py"
+    cmd = "black --check --diff hermeto tests noxfile.py"
     session.run(*cmd.split(), *session.posargs, silent=True)
 
 
@@ -71,7 +71,7 @@ def black(session: Session) -> None:
 def flake8(session: Session) -> None:
     """Run flake8 on cachi2 and tests directories and noxfile.py."""
     install_requirements(session)
-    cmd = "flake8 cachi2 tests noxfile.py"
+    cmd = "flake8 hermeto tests noxfile.py"
     session.run(*cmd.split(), *session.posargs, silent=True)
 
 
@@ -79,7 +79,7 @@ def flake8(session: Session) -> None:
 def isort(session: Session) -> None:
     """Run isort on cachi2 and tests directories and noxfile.py."""
     install_requirements(session)
-    cmd = "isort --check --diff --color cachi2 tests noxfile.py"
+    cmd = "isort --check --diff --color hermeto tests noxfile.py"
     session.run(*cmd.split(), *session.posargs, silent=True)
 
 
@@ -87,7 +87,7 @@ def isort(session: Session) -> None:
 def mypy(session: Session) -> None:
     """Run mypy on cachi2 and tests directories and noxfile.py."""
     install_requirements(session)
-    cmd = "mypy --install-types --non-interactive cachi2 tests noxfile.py"
+    cmd = "mypy --install-types --non-interactive hermeto tests noxfile.py"
     session.run(*cmd.split(), *session.posargs, silent=True)
 
 
@@ -99,14 +99,14 @@ def unit_tests(session: Session) -> None:
     session.install(".")
     # disable color output in GitHub Actions
     env = {"TERM": "dumb"} if os.getenv("CI") == "true" else None
-    cmd = "pytest --log-level=DEBUG --cov=cachi2 --cov-config=pyproject.toml --cov-report=term --cov-report=html --cov-report=xml --no-cov-on-fail tests/unit"
+    cmd = "pytest --log-level=DEBUG --cov=hermeto --cov-config=pyproject.toml --cov-report=term --cov-report=html --cov-report=xml --no-cov-on-fail tests/unit"
     session.run(*cmd.split(), *session.posargs, env=env)
 
 
 def _run_integration_tests(session: Session, env: dict[str, str]) -> None:
     install_requirements(session)
     netrc = "machine 127.0.0.1 login cachi2-user password cachi2-pass"
-    default_env = {"CACHI2_TEST_NETRC_CONTENT": os.getenv("CACHI2_TEST_NETRC_CONTENT", netrc)}
+    default_env = {"HERMETO_TEST_NETRC_CONTENT": os.getenv("HERMETO_TEST_NETRC_CONTENT", netrc)}
     default_env.update(env)
     cmd = "pytest --log-cli-level=WARNING tests/integration"
     session.run(*cmd.split(), *session.posargs, env=default_env)
@@ -124,9 +124,9 @@ def all_integration_tests(session: Session) -> None:
     _run_integration_tests(
         session,
         {
-            "CACHI2_RUN_ALL_INTEGRATION_TESTS": "true",
-            "CACHI2_TEST_LOCAL_PYPISERVER": "true",
-            "CACHI2_TEST_LOCAL_DNF_SERVER": "true",
+            "HERMETO_RUN_ALL_INTEGRATION_TESTS": "true",
+            "HERMETO_TEST_LOCAL_PYPISERVER": "true",
+            "HERMETO_TEST_LOCAL_DNF_SERVER": "true",
         },
     )
 
@@ -137,8 +137,8 @@ def generate_test_data(session: Session) -> None:
     _run_integration_tests(
         session,
         {
-            "CACHI2_RUN_ALL_INTEGRATION_TESTS": "true",
-            "CACHI2_GENERATE_TEST_DATA": "true",
+            "HERMETO_RUN_ALL_INTEGRATION_TESTS": "true",
+            "HERMETO_GENERATE_TEST_DATA": "true",
         },
     )
 
@@ -159,9 +159,9 @@ def pip_compile(session: Session) -> None:
         "run",
         "--rm",
         "--volume",
-        f"{PWD}:/cachi2:rw,Z",
+        f"{PWD}:/hermeto:rw,Z",
         "--workdir",
-        "/cachi2",
+        "/hermeto",
         "docker.io/library/python:3.9-alpine",
         "sh",
         "-c",
