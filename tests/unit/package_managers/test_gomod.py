@@ -9,7 +9,6 @@ from string import Template
 from typing import Any, Iterator, Literal, Optional, Tuple, Union
 from unittest import mock
 
-import git
 import pytest
 from packaging import version
 
@@ -52,6 +51,7 @@ from cachi2.core.package_managers.gomod import (
     fetch_gomod_source,
 )
 from cachi2.core.rooted_path import PathOutsideRoot, RootedPath
+from cachi2.core.scm import Repo
 from cachi2.core.utils import load_json_stream
 from tests.common_utils import GIT_REF, write_file_tree
 
@@ -1403,7 +1403,7 @@ def test_get_golang_version(
     module_name = f"github.com/mprahl/test-golang-pseudo-versions{module_suffix}"
 
     module_dir = RootedPath(golang_repo_path)
-    repo = git.Repo(golang_repo_path)
+    repo = Repo(golang_repo_path)
     repo.git.checkout(ref)
     version_resolver = ModuleVersionResolver(repo, repo.commit(ref))
 
@@ -1617,7 +1617,7 @@ def test_vendor_changed(
     rooted_tmp_path_repo: RootedPath,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    repo = git.Repo(rooted_tmp_path_repo)
+    repo = Repo(rooted_tmp_path_repo)
 
     app_dir = rooted_tmp_path_repo.join_within_root(subpath)
     os.makedirs(app_dir, exist_ok=True)
@@ -1895,7 +1895,7 @@ def repo_remote_with_tag(rooted_tmp_path: RootedPath) -> tuple[RootedPath, Roote
 
     local_repo_path.path.mkdir()
     remote_repo_path.path.mkdir()
-    remote_repo = git.Repo.init(remote_repo_path)
+    remote_repo = Repo.init(remote_repo_path)
 
     with open(readme_file_path, "wb"):
         pass
@@ -1907,7 +1907,7 @@ def repo_remote_with_tag(rooted_tmp_path: RootedPath) -> tuple[RootedPath, Roote
     remote_repo.index.add([readme_file_path])
     remote_repo.index.commit("Update README")
 
-    git.Repo.clone_from(remote_repo_path, local_repo_path)
+    Repo.clone_from(remote_repo_path, local_repo_path)
 
     remote_repo.create_tag("v1.0.0", ref=initial_commit)
     remote_repo.create_tag("v2.0.0")
@@ -1917,7 +1917,7 @@ def repo_remote_with_tag(rooted_tmp_path: RootedPath) -> tuple[RootedPath, Roote
 
 def test_fetch_tags(repo_remote_with_tag: tuple[RootedPath, RootedPath]) -> None:
     _, local_repo_path = repo_remote_with_tag
-    assert git.Repo(local_repo_path).tags == []
+    assert Repo(local_repo_path).tags == []
     version_resolver = ModuleVersionResolver.from_repo_path(local_repo_path)
     assert version_resolver._commit_tags == ["v2.0.0"]
     assert version_resolver._all_tags == ["v1.0.0", "v2.0.0"]

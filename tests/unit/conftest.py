@@ -2,11 +2,11 @@ import sys
 import tarfile
 from pathlib import Path
 
-import git
 import pytest
 
 from cachi2.core.models.input import Request
 from cachi2.core.rooted_path import RootedPath
+from cachi2.core.scm import Repo
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def rooted_tmp_path(tmp_path: Path) -> RootedPath:
 @pytest.fixture
 def rooted_tmp_path_repo(rooted_tmp_path: RootedPath) -> RootedPath:
     """Return RootedPath object wrapper for the tmp_path fixture with initialized git repository."""
-    repo = git.Repo.init(rooted_tmp_path)
+    repo = Repo.init(rooted_tmp_path)
     repo.git.config("user.name", "user")
     repo.git.config("user.email", "user@example.com")
 

@@ -42,7 +42,7 @@ from cachi2.core.models.output import EnvironmentVariable, RequestOutput
 from cachi2.core.models.property_semantics import PropertySet
 from cachi2.core.models.sbom import Component
 from cachi2.core.rooted_path import RootedPath
-from cachi2.core.scm import get_repo_id
+from cachi2.core.scm import Repo, get_repo_id
 from cachi2.core.utils import get_cache_dir, load_json_stream, run_cmd
 
 log = logging.getLogger(__name__)
@@ -1240,7 +1240,7 @@ class GoCacheTemporaryDirectory(tempfile.TemporaryDirectory[str]):
 class ModuleVersionResolver:
     """Resolves the versions of Go modules in a git repository."""
 
-    def __init__(self, repo: git.Repo, commit: git.objects.commit.Commit):
+    def __init__(self, repo: Repo, commit: git.objects.commit.Commit):
         """Initialize a ModuleVersionResolver for the provided Repo."""
         self._repo = repo
         self._commit = commit
@@ -1248,7 +1248,7 @@ class ModuleVersionResolver:
     @classmethod
     def from_repo_path(cls, repo_path: RootedPath) -> "Self":
         """Fetch tags from a git Repo and return a ModuleVersionResolver."""
-        repo = git.Repo(repo_path)
+        repo = Repo(repo_path)
         commit = repo.commit(repo.rev_parse("HEAD").hexsha)
         try:
             repo.remote().fetch(force=True, tags=True)
@@ -1642,7 +1642,7 @@ def _vendor_changed(context_dir: RootedPath) -> bool:
     vendor = context_dir.path.relative_to(repo_root).joinpath("vendor")
     modules_txt = vendor / "modules.txt"
 
-    repo = git.Repo(repo_root)
+    repo = Repo(repo_root)
     # Add untracked files but do not stage them
     repo.git.add("--intent-to-add", "--force", "--", context_dir)
 
