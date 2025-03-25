@@ -5,14 +5,44 @@ import tarfile
 import tempfile
 from os import PathLike
 from pathlib import Path
-from typing import NamedTuple, Union
+from typing import Any, NamedTuple, Union
 from urllib.parse import ParseResult, SplitResult, urlparse, urlsplit
 
-from git.repo import Repo
+import git
+from semver.version import Version
 
 from cachi2.core.errors import FetchError, UnsupportedFeature
 
 log = logging.getLogger(__name__)
+
+
+class Repo(git.Repo):
+    """git.Repo wrapping class forcing an empty config upon all git commands run over the repo.
+
+    Relying on plain git repository operations is subject to any git configuration files present,
+    either the system-wide one (/etc/gitconfig) or the per-user ones (~/.gitconfig). Any
+    non-default configuration could collide with our analysis of the git commands output.
+    Better force an empty configuration upon git and safely rely on the hardcoded defaults.
+
+    When it comes to passing a config file, git can only be configured via environment variables
+    which may either be passed via os.environ or using the git.Git.environment dictionary.
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the git.Repo wrapper."""
+        super().__init__(*args, **kwargs)
+        # reports version as 'git version X.Y.Z'
+        git_version_str = self.git.version().split()[-1]
+
+        if Version.parse(git_version_str) >= Version(2, 32):
+            self.git.update_environment(
+                GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null"
+            )
+        else:
+            # TODO: Drop this once Debian 11 LTS either bumps git version or goes EOL
+            self.git.update_environment(
+                GIT_CONFIG_NOSYSTEM="1", HOME="/dev/null", XDG_CONFIG_HOME="/dev/null"
+            )
 
 
 class RepoID(NamedTuple):
@@ -34,7 +64,7 @@ class RepoID(NamedTuple):
         return f"git+{self.origin_url}@{self.commit_id}"
 
 
-def get_repo_id(repo: Union[str, PathLike[str], Repo]) -> RepoID:
+def get_repo_id(repo: Union[str, PathLike[str], git.Repo]) -> RepoID:
     """Get the RepoID for a git.Repo object or a git directory.
 
     If the remote url is an scp-style [user@]host:path, convert it into ssh://[user@]host/path.
@@ -127,7 +157,7 @@ def clone_as_tarball(url: str, ref: str, to_path: Path) -> None:
     raise FetchError("Failed cloning the Git repository")
 
 
-def _reset_git_head(repo: Repo, ref: str) -> None:
+def _reset_git_head(repo: git.Repo, ref: str) -> None:
     try:
         repo.head.reference = repo.commit(ref)  # type: ignore # 'reference' is a weird property
         repo.head.reset(index=True, working_tree=True)
