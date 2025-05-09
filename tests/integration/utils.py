@@ -505,7 +505,6 @@ def build_image_and_check_cmd(
         containerfile_path=container_folder.joinpath("Containerfile"),
         test_case=test_case,
     ) as test_image:
-
         log.info(f"Run command {check_cmd} on built image {test_image.repository}")
         (output, exit_code) = test_image.run_cmd_on_image(check_cmd, tmp_path)
 
@@ -626,7 +625,20 @@ def pm_name(pm_change: Path) -> str:
 
 
 def affected_package_managers(pm_changes: tuple[Path, ...]) -> set[str]:
-    return set(pm_name(c) for c in pm_changes)
+    result = set(pm_name(c) for c in pm_changes)
+
+    def filter_pure_pm_names(changes: tuple[Path, ...]) -> list[str]:
+        return [
+            pm_name(c)
+            for c in changes
+            if name_of(c) in SUPPORTED_PMS and not name_of(c).startswith("test_")
+        ]
+
+    def affects_only_pms_from_multiple() -> set[str]:
+        return set(filter_pure_pm_names(pm_changes)).intersection(("gomod", "npm", "rpm"))
+
+    result.add("multiple") if affects_only_pms_from_multiple() else None
+    return result
 
 
 def is_testable_code(c: Path) -> bool:
