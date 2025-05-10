@@ -96,6 +96,19 @@ You might also like to check out `hermeto --help` and the `--help` texts of the 
 
 ## Configuration
 
+### Modes
+
+Hermeto can be run in two modes using the global CLI option `--mode`.
+
+* strict
+* permissive
+
+The default mode is `strict`. This mode treats all violations as fatal errors, and Hermeto will
+refuse to proceed. Meanwhile, the `permissive` mode treats all violations as warnings and Hermeto
+will continue to run at the cost of potentially reducing the accuracy and completeness of the SBOM.
+
+### Available configuration parameters
+
 You can change Hermeto's configuration by specifying a configuration file while invoking any of the CLI commands:
 
 ```shell
@@ -106,8 +119,6 @@ Any parameter specified in this file will override the default values present in
 [config.py](https://github.com/hermetoproject/hermeto/blob/main/hermeto/core/config.py) module.
 
 The only supported format for the config file is YAML.
-
-### Available configuration parameters
 
 * `default_environment_variables` - a dictionary where the keys
 are names of package managers. The values are dictionaries where the keys
